@@ -10,7 +10,7 @@ cUSD Currency is designed to let dollars move globally from your crypto wallet t
 
 # No Middle-Man. Be Your Own Bank.
 
-cUSD Currency (CUSD) is a type of cryptocurrency that is referred to as a decentralized stablecoin. cUSD converts cash into digital currency and aims to be anchored to the price of USD and Tether. One way this stability is accomplished is through the minting and burning of the main supply mathematically.
+cUSD Currency (CUSD) is a type of cryptocurrency that is in the family of what is called stablecoins. Though cUSD is not pegged to the price of USD it seeks to emulate its value as much as possible. We are essentially an digital alternative to USD. Also we believe in the end fiat USD can fail in its price and value through massive inflation. So we would rather allow the crypto market based on BTC (an digital gold) dictate our value.
 
 <img src="https://cusd.money/images/people2.png">
 
