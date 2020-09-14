@@ -1,8 +1,9 @@
 /**
- *Submitted for verification at Etherscan.io on 2020-01-31
+ *Submitted for verification at Etherscan.io on 2020-09-12
 */
 
-pragma solidity ^0.5.16;
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity ^0.7.1;
 
 /**
  * Math operations with safety checks
@@ -48,9 +49,9 @@ library SafeMath {
 }
 
 /**
- * cUSD Contract
+ * Crypto Accept Contract
  */
-contract cUSD {
+contract CryptoAccept {
     using SafeMath for uint256;
     string public name;
     string public symbol;
@@ -64,16 +65,13 @@ contract cUSD {
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-    event Mint(address indexed to, uint256 amount);
-    event MintingFinished();
-    event Burn(uint256 amount);
 
     constructor(
         uint256 initialSupply,
         string memory tokenName,
         uint8 decimalUnits,
         string memory tokenSymbol
-        ) public {
+        ) {
             balanceOf[msg.sender] = initialSupply;
             totalSupply = initialSupply;
             name = tokenName;
@@ -124,7 +122,7 @@ contract cUSD {
     }
 
     function multiTransferSingleValue(address[] memory _receivers, uint256 _value) public returns (bool success) {
-        uint256 toSend = _value * 10**6;
+        uint256 toSend = _value * 10**18;
 
         require(_receivers.length <= 200, "Too many recipients");
 
@@ -158,84 +156,32 @@ contract cUSD {
      * Ownership functions
      */
     modifier onlyOwner() {
-        require(msg.sender == owner);
+        require(msg.sender == owner, "Ownable: caller is not the owner");
         _;
     }
 
-    function transferOwnership(address newOwner) public {
-        require(newOwner != address(0));
-        emit OwnershipTransferred(owner, newOwner);
-        owner = newOwner;
+    function transferOwnership(address _newOwner) public onlyOwner {
+        require(_newOwner != address(0));
+        emit OwnershipTransferred(owner, _newOwner);
+        owner = _newOwner;
     }
 
     /**
-     * Minting functions
+     * Burn functions
      */
-    bool public mintingFinished = false;
-
-    address public creator;
-    address public destroyer;
-
-    modifier canMint() {
-        require(!mintingFinished);
-        _;
+    function burn(uint256 _value) external {
+        _burn(msg.sender, _value);
     }
 
-    modifier whenMintingFinished() {
-        require(mintingFinished);
-        _;
-    }
+    function _burn(address _from, uint256 _value) internal {
+        require(_from != address(0), "ERC20: burn from the zero address");
 
-    modifier onlyCreator() {
-        require(msg.sender == creator);
-        _;
-    }
+        require(_value != 0);
+        require(_value <= balanceOf[_from]);
 
-    function setCreator(address _creator) external onlyOwner {
-        require(_creator != address(0), "Cannot use zero address");
-        creator = _creator;
-    }
+        balanceOf[_from] = SafeMath.safeSub(balanceOf[_from], _value);
+        totalSupply = SafeMath.safeSub(totalSupply, _value);
 
-    function mint(address _to, uint256 _amount) external onlyCreator canMint returns (bool) {
-        require(_to != address(0), "Cannot use zero address");
-        require(balanceOf[_to] + _amount > balanceOf[_to]);
-        require(totalSupply + _amount > totalSupply);
-
-        totalSupply = SafeMath.safeAdd(totalSupply, _amount);
-        balanceOf[_to] = SafeMath.safeAdd(balanceOf[_to], _amount);
-
-        emit Mint(_to, _amount);
-
-        return true;
-    }
-
-    function finishMinting() external onlyCreator returns (bool) {
-        mintingFinished = true;
-        emit MintingFinished();
-
-        return true;
-    }
-
-    /**
-     * Burning functions
-     */
-
-    modifier onlyDestroyer() {
-        require(msg.sender == destroyer);
-        _;
-    }
-
-    function setDestroyer(address _destroyer) external onlyOwner {
-        require(_destroyer != address(0), "Cannot use zero address");
-        destroyer = _destroyer;
-    }
-
-    function burn(uint256 _amount) external onlyDestroyer {
-        require(balanceOf[destroyer] >= _amount && _amount > 0);
-
-        balanceOf[destroyer] = SafeMath.safeSub(balanceOf[destroyer], _amount);
-        totalSupply = SafeMath.safeSub(totalSupply, _amount);
-        
-        emit Burn(_amount);
+        emit Transfer(_from, address(0), _value);
     }
 }
